@@ -9,23 +9,36 @@ import urllib.request
 
 def search(keywords):
     url = getURL(keywords)
+    return downloadImage(url, keywords)
+
+def downloadImage(url, keywords=None):
     file_name = 'imagen.'
     extension = url.split('.')
     extension = extension[len(extension)-1]
+    print(file_name + extension)
     if not (extension.lower == 'png' or extension.lower() == 'jpg' or extension.lower() == 'jpeg'):
-        print('Buscando otra vez por: GIF o extensión incompatible')
-        return (search(keywords))
+        if keywords is not None:
+            print('Buscando otra vez por: GIF o extensión incompatible')
+            return (search(keywords))
+        else:
+            return(None)
     try:
         with urllib.request.urlopen(url) as response, open(file_name+extension, 'wb') as out_file:
             data = response.read()  # a `bytes` object
             out_file.write(data)
     except urllib.error.HTTPError as e:
-        print('Buscando otra vez por: '+str(e))
-        return(search(keywords))
+        if keywords is not None:
+            print('Buscando otra vez por: '+str(e))
+            return(search(keywords))
+        else:
+            return(None)
     except urllib.error.URLError as e:
-        print('Buscando otra vez por: ' + str(e))
-        return (search(keywords))
-    print(file_name+extension)
+        if keywords is not None:
+            print('Buscando otra vez por: ' + str(e))
+            return (search(keywords))
+        else:
+            return(None)
+    print(file_name+extension+' descargada')
     return (file_name+extension)
 
 def getURL(keywords, max_results=1):
@@ -43,7 +56,7 @@ def getURL(keywords, max_results=1):
     'dnt': '1',
     'accept-encoding': 'gzip, deflate, sdch, br',
     'x-requested-with': 'XMLHttpRequest',
-    'accept-language': 'en-GB,en-US;q=0.8,en;q=0.6,ms;q=0.4',
+    'accept-language': 'es, en-GB;q=0.8,en;q=0.6,ms;q=0.4',
     'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
     'accept': 'application/json, text/javascript, */*; q=0.01',
     'referer': 'https://duckduckgo.com/',

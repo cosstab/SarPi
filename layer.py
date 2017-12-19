@@ -26,6 +26,8 @@ class EchoLayer(YowInterfaceLayer):
         if messageProtocolEntity.getType() == 'text':
             global online
             global lastCommandTime
+            recipient = messageProtocolEntity.getFrom()
+            remitente = messageProtocolEntity.getParticipant()
             message = messageProtocolEntity.getBody()
             print("Mensaje: " + str(message))
             self.toLower(messageProtocolEntity.ack())  # Set received (double v)
@@ -41,12 +43,42 @@ class EchoLayer(YowInterfaceLayer):
                 online = True
                 random.uniform(0.5, 1.5)
             self.toLower(messageProtocolEntity.ack(True)) #Set read (double v blue)
-            time.sleep(0.5)
             if message[0] == '.':
-                self.toLower(OutgoingChatstateProtocolEntity(OutgoingChatstateProtocolEntity.STATE_TYPING, Jid.normalize(messageProtocolEntity.getFrom(False)) )) #Set is writing
-                time.sleep(random.uniform(0.5, 1.5))
-                self.toLower(OutgoingChatstateProtocolEntity(OutgoingChatstateProtocolEntity.STATE_PAUSED, Jid.normalize(messageProtocolEntity.getFrom(False)) )) #Set no is writing
-                self.onTextMessage(messageProtocolEntity) #Send the answer
+                if remitente is None:
+                    remitente = recipient
+                lastCommand = self.buscarLineas(remitente, 2, 6)
+                lastTime = int(float(lastCommand.split('\n')[0]))
+                cooldownFactor = int(lastCommand.split('\n')[1])
+                sensitibity = 5
+                if cooldownFactor < 0: cooldownFactor = 0
+                cooldown = cooldownFactor%10 + (sensitibity- (int(time.time())-lastTime))
+                print('LastTime: '+str(lastTime)+' CooldownFactor: '+str(cooldownFactor)+' Cooldown: '+str(cooldown))
+                print(time.time()-lastTime)
+                if cooldown < 9 and cooldownFactor%10 != 9:
+                    self.isWriting(messageProtocolEntity)
+                    self.onTextMessage(messageProtocolEntity) #Send the answer
+                    cooldownFactor = cooldownFactor + (sensitibity- (int(time.time())-lastTime))
+                    if cooldownFactor%10 == 9:
+                        cooldownFactor -= 1
+                    self.buscarReemplazar(remitente, 6, time.time())
+                    self.buscarReemplazar(remitente, 7, cooldownFactor)
+                else:
+                    cooldownMin = int(cooldownFactor/10)+1
+                    if cooldownFactor%10 != 9:
+                        self.isWriting(messageProtocolEntity)
+                        answer = "😡 Límite de comandos alcanzado. No podrá usar comandos durante %dm." % (cooldownMin)
+                        self.toLower(TextMessageProtocolEntity(answer, to=recipient))
+                        print(answer)
+                        cooldownFactor = cooldownFactor + (9 - cooldownFactor%10)
+                        self.buscarReemplazar(remitente, 6, time.time())
+                        self.buscarReemplazar(remitente, 7, cooldownFactor)
+                    elif int(time.time()-lastTime) > cooldownMin*60:
+                        self.isWriting(messageProtocolEntity)
+                        self.onTextMessage(messageProtocolEntity)  # Send the answer
+                        cooldownFactor += 1
+                        self.buscarReemplazar(remitente, 6, time.time())
+                        self.buscarReemplazar(remitente, 7, cooldownFactor)
+
             #self.toLower(UnavailablePresenceProtocolEntity()) #Set offline
             
 ##########Uploads###########
@@ -133,7 +165,7 @@ class EchoLayer(YowInterfaceLayer):
                     saltar -= 1
                     perfiles_m.write(linea)
                 else:
-                    perfiles_m.write(reemplazo.replace('\n', '/n')+'\n')
+                    perfiles_m.write(str(reemplazo).replace('\n', '/n')+'\n')
                 encontrada = 1
                 
             elif encontrada and saltar:
@@ -141,7 +173,7 @@ class EchoLayer(YowInterfaceLayer):
                 saltar -= 1
                 
             elif encontrada and not saltar:
-                perfiles_m.write(reemplazo.replace('\n', '/n')+'\n')
+                perfiles_m.write(str(reemplazo).replace('\n', '/n')+'\n')
                 saltar -= 1
             else:
                 perfiles_m.write(linea) 
@@ -151,8 +183,14 @@ class EchoLayer(YowInterfaceLayer):
         
     def crearPerfil(self, remitente, nombre):
         perfiles = open ("perfiles.txt", "a")
-        perfiles.write(remitente+'\n'+nombre.replace('\n', ' ')+'\nEstado vacío\n3\n👥\n\n\n')
+        perfiles.write('\n'+remitente+'\n'+nombre.replace('\n', ' ')+'\nEstado vacío\n3\n👥\n0\n0\n0\n')
         perfiles.close()
+
+    def isWriting(self, messageProtocolEntity):
+        time.sleep(0.5)
+        self.toLower(OutgoingChatstateProtocolEntity(OutgoingChatstateProtocolEntity.STATE_TYPING, Jid.normalize(messageProtocolEntity.getFrom(False))))  # Set is writing
+        time.sleep(random.uniform(0.5, 1.5))
+        self.toLower(OutgoingChatstateProtocolEntity(OutgoingChatstateProtocolEntity.STATE_PAUSED, Jid.normalize(messageProtocolEntity.getFrom(False))))  # Set no is writing
 
     def onlineTimer(self):
         while True:
@@ -168,8 +206,8 @@ class EchoLayer(YowInterfaceLayer):
     def onReceipt(self, entity):
         print(entity.ack())
         self.toLower(entity.ack())
-      
-      
+
+
     def onTextMessage(self,messageProtocolEntity):
         namemitt   = messageProtocolEntity.getNotify()
         message    = messageProtocolEntity.getBody()
@@ -272,33 +310,39 @@ class EchoLayer(YowInterfaceLayer):
             if i<len(message) and message[i] == '@':
                 mencion = True
                 i += 1
-            while i < len(message):
+            while i < len(message) and message[i] != '@':
                 nombre = nombre + message[i]
                 i +=1
             cookies = self.buscarLineas(remitente, 1, 3)
             if nombre == '':
                 if cookies is not None:
-                    cookies = int(cookies)+1
-                    self.buscarReemplazar(remitente, 3, str(cookies))
-                    answer = '🍪 ¡Has obtenido una galleta!'
+                    lastCookie = self.buscarLineas(remitente, 1, 5)
+                    cookieCooldown   = time.time() < (float(lastCookie) + 1*3600)
+                    if not cookieCooldown:
+                        cookies = int(cookies)+5
+                        self.buscarReemplazar(remitente, 3, str(cookies))
+                        answer = '🍪 ¡Has obtenido 5 galletas!'
+                        self.buscarReemplazar(remitente, 5, str(time.time()))
+                    else:
+                        answer = '⏱ Solo puede obtener galletas una vez por hora.'
                 else:
-                    answer = '✅ No ha creado un perfil.'
+                    answer = '⛔ No ha creado un perfil.'
             else:
                 if mencion:
                     nombre = nombre + '@s.whatsapp.net'
                 cookiesReceptor = self.buscarLineas(nombre, 1, 2 + mencion)
                 if cookies is None:
-                    answer = '✅ No ha creado un perfil.'
+                    answer = '⛔ No ha creado un perfil.'
                 elif cookiesReceptor is None:
-                    answer = '✅ No existe el perfil del receptor.'
+                    answer = '⛔ No existe el perfil del receptor.'
                 elif int(cookies) > 0:
                     cookies = int(cookies)-1
                     cookiesReceptor = int(cookiesReceptor)+1
                     self.buscarReemplazar(remitente, 3, str(cookies))
                     self.buscarReemplazar(nombre, 2 + mencion, str(cookiesReceptor))
-                    answer = 'Se ha transferido una galleta a '+nombre
+                    answer = '💸 Se ha transferido una galleta a '+nombre
                 elif int(cookies) == 0:
-                    answer = 'No tienes galletas suficientes.'
+                    answer = '🦆 No tienes galletas suficientes.'
             self.toLower(textmsg(answer, to = recipient ))
             print(answer)
         
@@ -311,7 +355,7 @@ class EchoLayer(YowInterfaceLayer):
             if i<len(message) and message[i] == '@':
                 mencion = True
                 i += 1
-            while i < len(message) and message[i] != ' ':
+            while i < len(message) and message[i] != ' ' and message[i] != '@':
                 subcomando = subcomando + message[i].lower()
                 i += 1
             i += 1
@@ -392,17 +436,39 @@ class EchoLayer(YowInterfaceLayer):
                 i += 1
             if subcomando != '':
                 try:
-                    answer = wikipedia.summary(subcomando, sentences = 5)
+                    answer = '🔎 ¡Enviando artículo!'
+                    self.toLower(textmsg(answer, to=recipient))
+                    summary = wikipedia.summary(subcomando, sentences = 5)
+                    article = wikipedia.page(subcomando)
+                    images = article.images
+                    image = None
+                    print(answer)
+                    j = 0
+                    while image is None and j < len(images):
+                        image = img.downloadImage(images[j])
+                        j += 1
+                    if image is not None:
+                        self.image_send(recipient, image, summary)
+                    else:
+                        answer = summary
+                        self.toLower(textmsg(answer, to=recipient))
+                        print(answer)
                 except wikipedia.exceptions.DisambiguationError as e:
                     answer = str(e.options)
+                    self.toLower(textmsg(answer, to=recipient))
+                    print(answer)
                 except wikipedia.exceptions.HTTPTimeoutError:
                     answer = '🔌 No se ha podido contactar con los servidores de Wikipedia.'
+                    self.toLower(textmsg(answer, to=recipient))
+                    print(answer)
                 except wikipedia.exceptions.PageError:
                     answer = '🔎 No se ha encontrado ningún resultado.'
+                    self.toLower(textmsg(answer, to=recipient))
+                    print(answer)
             else:
                 answer = '⛔ Introduzca el término de búsqueda.'
-            self.toLower(textmsg(answer, to=recipient))
-            print(answer)
+                self.toLower(textmsg(answer, to=recipient))
+                print(answer)
         elif comando == 'img':
             subcomando = ''
             i += 1
