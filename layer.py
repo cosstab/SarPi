@@ -305,16 +305,19 @@ class EchoLayer(YowInterfaceLayer):
         
         elif comando == 'cookie':
             nombre = ''
+            cantidad = 1
             mencion = 0
-            i += 1
-            if i<len(message) and message[i] == '@':
-                mencion = True
-                i += 1
-            while i < len(message) and message[i] != '@':
-                nombre = nombre + message[i]
-                i +=1
+            message = message.split(' ')
+            for word in message:
+                if word.isdigit():
+                    cantidad = int(word)
+                elif word[0] == '@':
+                    nombre = word.replace('@','')
+                    mencion = 1
+                elif not mencion:
+                    nombre = word
             cookies = self.buscarLineas(remitente, 1, 3)
-            if nombre == '':
+            if nombre == '.cookie':
                 if cookies is not None:
                     lastCookie = self.buscarLineas(remitente, 1, 5)
                     cookieCooldown   = time.time() < (float(lastCookie) + 1*3600)
@@ -335,12 +338,15 @@ class EchoLayer(YowInterfaceLayer):
                     answer = '⛔ No ha creado un perfil.'
                 elif cookiesReceptor is None:
                     answer = '⛔ No existe el perfil del receptor.'
-                elif int(cookies) > 0:
-                    cookies = int(cookies)-1
-                    cookiesReceptor = int(cookiesReceptor)+1
+                elif int(cookies) - cantidad >= 0 :
+                    cookies = int(cookies)-cantidad
+                    cookiesReceptor = int(cookiesReceptor)+cantidad
                     self.buscarReemplazar(remitente, 3, str(cookies))
                     self.buscarReemplazar(nombre, 2 + mencion, str(cookiesReceptor))
-                    answer = '💸 Se ha transferido una galleta a '+nombre
+                    if cantidad == 1:
+                        answer = '💸 Se ha transferido una galleta a '+nombre
+                    else:
+                        answer = '💸 Se han transferido '+str(cantidad)+' galletas a '+nombre
                 elif int(cookies) == 0:
                     answer = '🦆 No tienes galletas suficientes.'
             self.toLower(textmsg(answer, to = recipient ))
@@ -482,6 +488,7 @@ class EchoLayer(YowInterfaceLayer):
                 self.image_send(recipient, imagen, subcomando.title())
             else:
                 answer = '⛔ Introduzca el término de búsqueda.'
+                self.toLower(textmsg(answer, to=recipient))
         else:
             answer = '⛔ Comando inválido. Para ver la lista de comandos, utilice el comando *.list*'
             self.toLower(textmsg(answer, to = recipient ))
