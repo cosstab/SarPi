@@ -27,12 +27,12 @@ class TelegramAdapter():
     def __extract_command_and_args(self, text: str) -> str:
         """
         Command example:
-            /alarm set 9 am
+            /alarm@SarPi set 9 am
         """
 
-        text = text[1:] #Remove slash. Now, text = "alarm set 9 am"
-        text = text.split(" ") #Split text. text = ["alarm", "set", "9", "am"]
-        command = text[0] #command = "alarm"
+        text = text[1:] #Remove slash. Now, text = "alarm@SarPi set 9 am"
+        text = text.split(" ") #Split text. text = ["alarm@SarPi", "set", "9", "am"]
+        command = text[0].split("@")[0] #command = "alarm"
         args = text[1:] #args = ["set", "9", "am"]
         
         return command, args
