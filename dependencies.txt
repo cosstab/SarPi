@@ -1,2 +1,4 @@
 pip libraries:
 	python-telegram-bot 
+	discord.py
+
