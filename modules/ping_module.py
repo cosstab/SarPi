@@ -1,6 +1,6 @@
 """This is just a test of a second module"""
 
-from modules.sarpi_module import SarpiModule
+from modules import SarpiModule
 
 
 class PingModule(SarpiModule):
@@ -9,3 +9,4 @@ class PingModule(SarpiModule):
 
     def process_message(self, command, args):
         return "Pong! 🏓"
+        

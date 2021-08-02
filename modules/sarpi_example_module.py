@@ -1,4 +1,4 @@
-from sarpi_module import SarpiModule #Import interface
+from modules import SarpiModule #Import interface
 
 
 class SarpiExampleModule(SarpiModule):

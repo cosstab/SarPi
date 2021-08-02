@@ -1,29 +1,34 @@
 from threading import Thread
 import asyncio
+from typing import Dict
 
-# TODO: import of modules will be automated on future releases
-from modules.ping_module import PingModule
-from modules.sarpi_default_module import SarpiDefaultModule
+# Import modules
+from modules import SarpiModule
+from modules import *
 
-# Chat adapters
+# Import chat adapters
 from chat_adapters.telegram_adapter import TelegramAdapter
 from chat_adapters.discord_adapter import DiscordAdapter
 
 
 # Selects the right module to analyze the received command
 class SarpiDispatcher():
+    def __init__(self) -> None:
+        self.command_modules = {} #Dict of commands and SarpiModule objects
+
+        for module in SarpiModule.modules:
+            module_instance = module()
+            for command in module.COMMAND_WORDS:
+                self.command_modules[command] = module_instance
+
     def on_command(self, command: str, args: list[str]) -> str:
         print("Command: " + command)
         print("Arguments: " + str(args))
+        
+        command_module = self.command_modules.get(command)
 
-        # TODO: automate module instantiation and command dispatch
-        default_module = SarpiDefaultModule()
-        ping_module = PingModule()
-
-        if command in default_module.COMMAND_WORDS:
-            return default_module.process_message(command, args)
-        elif command in ping_module.COMMAND_WORDS:
-            return ping_module.process_message(command, args)
+        if command_module is not None:
+            return command_module.process_message(command, args)
         else:
             return "⛔ Command not found."
 

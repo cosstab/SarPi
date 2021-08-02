@@ -1,4 +1,4 @@
-from modules.sarpi_module import SarpiModule
+from modules import SarpiModule
 
 
 class SarpiDefaultModule(SarpiModule):
