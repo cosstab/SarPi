@@ -13,15 +13,15 @@ class SarpiModule():
         super().__init_subclass__()
         cls.modules.append(cls)
 
-    def process_message(self, command: str, args: list[str]) -> str:
+    def process_message(self, message) -> str:
         """
         This function analyzes the received command and returns a response.
 
-        -command: only contains the type of command
-        -args: list of arguments after the command
+        -message.command: only contains the type of command
+        -message.args: list of arguments after the command
 
         Example:
-            Message: !alarm set 9 am
+            Received message: !alarm set 9 am
             command = 'alarm'
             args = ['set', '9', 'am']
         """

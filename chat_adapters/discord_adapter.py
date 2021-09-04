@@ -1,3 +1,4 @@
+from message import SarpiMessage
 import discord
 from discord.ext import commands
 
@@ -46,8 +47,10 @@ class DiscordAdapter():
     async def _on_command(self, message) -> None:
         command, args = self._extract_command_and_args(message.content)
 
-        # SarPi's dispatcher will send the command to the appropiate module and return the response
-        response = self.sarpi_dispatcher.on_command(command, args)
+        sarpi_message = SarpiMessage(command, args, None)
+
+        # SarPi's dispatcher will send the message to the appropiate module and return the response
+        response = self.sarpi_dispatcher.on_command(sarpi_message)
 
         # Send the response
         await message.channel.send(response)

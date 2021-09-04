@@ -12,5 +12,5 @@ class SarpiDefaultModule(SarpiModule):
     
     COMMAND_WORDS = __responses.keys()
 
-    def process_message(self, command, args):
-        return self.__responses.get(command)
+    def process_message(self, message):
+        return self.__responses.get(message.command)

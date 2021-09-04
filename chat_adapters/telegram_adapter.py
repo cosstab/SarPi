@@ -1,3 +1,4 @@
+from message import SarpiMessage
 from telegram import Update, ForceReply
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 
@@ -45,9 +46,10 @@ class TelegramAdapter():
 
     def _on_command(self, update, context) -> None:
         command, args = self._extract_command_and_args(update.message.text)
+        sarpi_message = SarpiMessage(command, args, None)
 
-        # SarPi's dispatcher will send the command to the appropiate module and return the response
-        response = self.sarpi_dispatcher.on_command(command, args)
+        # SarPi's dispatcher will send the message to the appropiate module and return the response
+        response = self.sarpi_dispatcher.on_command(sarpi_message)
 
         # Send the response
         context.bot.send_message(chat_id=update.effective_chat.id, text=response)

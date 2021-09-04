@@ -7,6 +7,6 @@ class PingModule(SarpiModule):
     MODULE_NAME = "Ping Module"    
     COMMAND_WORDS = ["ping"]
 
-    def process_message(self, command, args):
+    def process_message(self, message):
         return "Pong! 🏓"
         

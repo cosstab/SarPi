@@ -1,3 +1,4 @@
+from message import SarpiMessage
 from threading import Thread
 import asyncio
 from typing import Dict
@@ -21,14 +22,14 @@ class SarpiDispatcher():
             for command in module.COMMAND_WORDS:
                 self.command_modules[command] = module_instance
 
-    def on_command(self, command: str, args: list[str]) -> str:
-        print("Command: " + command)
-        print("Arguments: " + str(args))
+    def on_command(self, message: SarpiMessage) -> str:
+        print("Command: " + message.command)
+        print("Arguments: " + str(message.args))
         
-        command_module = self.command_modules.get(command)
+        command_module = self.command_modules.get(message.command)
 
         if command_module is not None:
-            return command_module.process_message(command, args)
+            return command_module.process_message(message)
         else:
             return "⛔ Command not found."
 
