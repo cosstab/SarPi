@@ -1,9 +1,12 @@
-from message import SarpiMessage
-from telegram import Update, ForceReply
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+from user import User
+from medium import Medium
+from message import Message as SarpiMessage
+from telegram.ext import Updater, MessageHandler, Filters
 
 
 class TelegramAdapter():
+    PLATFORM_NAME = "Telegram"
+
 	# Initialize adapter, Telegram Updater and it's events
     def __init__(self, sarpi_dispatcher: 'SarpiDispatcher') -> None:
         self.sarpi_dispatcher = sarpi_dispatcher
@@ -22,7 +25,7 @@ class TelegramAdapter():
         # Start the Bot
         self.updater.start_polling()
         
-        print('Telegram adapter started. Logged on as ' + self.updater.bot.username + '!')
+        print(self.PLATFORM_NAME + ' adapter started. Logged on as ' + self.updater.bot.username + '!')
 
         # Run the bot until you press Ctrl-C or the process receives SIGINT,
         # SIGTERM or SIGABRT. This should be used most of the time, since
@@ -43,13 +46,25 @@ class TelegramAdapter():
         
         return command, args
 
+    def _telegram_to_sarpi_id(self, id: int) -> str:
+        return self.PLATFORM_NAME + str(id)
 
     def _on_command(self, update, context) -> None:
+        # Prepare command and arguments
         command, args = self._extract_command_and_args(update.message.text)
-        sarpi_message = SarpiMessage(command, args, None)
 
-        # SarPi's dispatcher will send the message to the appropiate module and return the response
-        response = self.sarpi_dispatcher.on_command(sarpi_message)
+        # Prepare user metadata
+        user = User(self._telegram_to_sarpi_id(update.effective_user.id), update.effective_user.username, update.effective_user.first_name)
 
-        # Send the response
-        context.bot.send_message(chat_id=update.effective_chat.id, text=response)
+        # Prepare lambda reply function to be used later by the respective command module.
+        # A Message object will be provided to this function.
+        reply_func = lambda message : context.bot.send_message(chat_id=update.effective_chat.id, text=message.text)
+
+        # Create Medium object with previous data
+        medium = Medium(self.PLATFORM_NAME, self._telegram_to_sarpi_id(update.effective_chat.id), reply_func, user)
+
+        # Create Message object
+        sarpi_message = SarpiMessage(update.message.text, command, args, medium)
+
+        # SarPi's dispatcher will send the message to the appropiate module
+        self.sarpi_dispatcher.on_command(sarpi_message)

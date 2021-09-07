@@ -1,11 +1,16 @@
+from message import Message
 from modules import SarpiModule #Import interface
 
+"""
+CHANGE THE NAME OF THIS FILE
+Modules with this name will be ignored
+"""
 
 class SarpiExampleModule(SarpiModule):
     MODULE_NAME = "Example Module" #The name of your module
-    COMMAND_WORDS = ["hello", "list"] #List of commands this module will respond to
+    COMMAND_WORDS = ["hi", "thanks"] #List of commands this module will respond to
 
-    def process_message(self, message):
+    def process_message(self, message: Message):
         """
         This function analyzes the received command and returns a response.
 
@@ -18,12 +23,11 @@ class SarpiExampleModule(SarpiModule):
             args = ['set', '9', 'am']
 
         In this case we won't check the arguments.
+        Reply to the command with 'message.medium.reply(response: Message)'
         """
 
-        if (message.command == "hello"):
-            return "Hello!"
-        elif (message.command == "list"):
-            return ("List of available commands:"
-                    "hello"
-                    "list")
+        if (message.command == "hi"):
+            message.medium.reply(Message("Hello!"))
+        elif (message.command == "thanks"):
+            message.medium.reply(Message("You're welcome :)"))
     
