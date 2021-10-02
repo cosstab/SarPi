@@ -2,6 +2,8 @@ from user import User
 from medium import Medium
 from message import Message as SarpiMessage
 from telegram.ext import Updater, MessageHandler, Filters
+import os
+from dotenv import load_dotenv
 
 
 class TelegramAdapter():
@@ -11,8 +13,12 @@ class TelegramAdapter():
     def __init__(self, sarpi_dispatcher: 'SarpiDispatcher') -> None:
         self.sarpi_dispatcher = sarpi_dispatcher
         
+        # Load API token from environment variables on .env file
+        load_dotenv()
+        API_TOKEN = os.getenv('TELEGRAM_TOKEN')
+
         # Create the Updater and pass it your bot's token.
-        self.updater = Updater('YOUR TOKEN')
+        self.updater = Updater(API_TOKEN)
 
         # Get the dispatcher to register handlers
         telegram_dispatcher = self.updater.dispatcher

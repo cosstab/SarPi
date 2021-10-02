@@ -3,6 +3,8 @@ from medium import Medium
 from user import User
 from message import Message as SarpiMessage
 import discord
+import os
+from dotenv import load_dotenv
 
 class DiscordAdapter():
     PLATFORM_NAME = "Discord"
@@ -30,7 +32,12 @@ class DiscordAdapter():
 
     
     async def start(self) -> None:
-        await self.bot.start('YOUR TOKEN')
+        # Load API token from environment variables on .env file
+        load_dotenv()
+        API_TOKEN = os.getenv('DISCORD_TOKEN')
+
+        # Start bot
+        await self.bot.start(API_TOKEN)
 
     
     def _extract_command_and_args(self, text: str) -> str:

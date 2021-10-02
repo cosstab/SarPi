@@ -1,4 +1,4 @@
-from __future__ import annotations #Solution for circular dependencies importing Message for annotations
+from __future__ import annotations #Solution for circular dependencies when importing Message for annotations
 #from message import Message
 from typing import Callable
 from user import User
