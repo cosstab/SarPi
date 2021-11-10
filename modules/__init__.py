@@ -1,4 +1,4 @@
-from message import Message
+from message import SarpiMessage
 import pkgutil
 
 """SarPi command modules must inherit from this class"""
@@ -14,7 +14,7 @@ class SarpiModule():
         super().__init_subclass__()
         cls.modules.append(cls)
 
-    def process_message(self, message: Message) -> str:
+    def process_message(self, message: SarpiMessage) -> str:
         """
         This function analyzes the received command to produce (or not) a response.
 
@@ -26,7 +26,7 @@ class SarpiModule():
             command = 'alarm'
             args = ['set', '9', 'am']
         
-        Reply to the command with 'message.medium.reply(response: Message)'
+        Reply to the command with 'message.medium.reply(response: SarpiMessage)'
         """
 
 # Import every module in modules folder, except example module

@@ -1,4 +1,4 @@
-from message import Message
+from message import SarpiMessage
 from modules import SarpiModule
 
 
@@ -13,6 +13,6 @@ class SarpiDefaultModule(SarpiModule):
     
     COMMAND_WORDS = __responses.keys()
 
-    def process_message(self, message: Message):
+    def process_message(self, message: SarpiMessage):
         response = self.__responses.get(message.command) #Choose the appropiate command response
-        message.medium.reply(Message(response))
+        message.medium.reply(SarpiMessage(response))

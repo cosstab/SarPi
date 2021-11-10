@@ -1,4 +1,5 @@
-from message import Message
+from event import SarpiEvent
+from message import SarpiMessage
 from threading import Thread
 import asyncio
 
@@ -9,6 +10,7 @@ from modules import *
 # Import chat adapters
 from chat_adapters.telegram_adapter import TelegramAdapter
 from chat_adapters.discord_adapter import DiscordAdapter
+from update import SarpiUpdate
 
 
 # Selects the right module to analyze the received command
@@ -21,17 +23,22 @@ class SarpiDispatcher():
             for command in module.COMMAND_WORDS:
                 self.command_modules[command] = module_instance
 
-    def on_command(self, message: Message) -> str:
-        print("\nNew " + message.medium.platform + " command")
-        print("Command: " + message.command)
-        print("Arguments: " + str(message.args))
-        
-        command_module = self.command_modules.get(message.command)
+    def on_command(self, update: SarpiUpdate) -> str:
+        if isinstance(update, SarpiMessage):
+            print("\nNew " + update.medium.platform + " command")
+            print("Command: " + update.command)
+            print("Arguments: " + str(update.args))
 
-        if command_module is not None:
-            command_module.process_message(message)
-        else:
-            message.medium.reply(Message("⛔ Command not found."))
+            command_module = self.command_modules.get(update.command)
+
+            if command_module is not None:
+                command_module.process_message(update)
+            else:
+                update.medium.reply(SarpiMessage("⛔ Command not found."))
+                
+        elif isinstance(update, SarpiEvent):
+            print("\nNew " + update.medium.platform + " event")
+        
 
 sarpi_dispatcher = SarpiDispatcher()
 

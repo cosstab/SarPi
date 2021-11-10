@@ -1,7 +1,7 @@
 import asyncio
-from medium import Medium
-from user import User
-from message import Message as SarpiMessage
+from medium import SarpiMedium
+from user import SarpiUser
+from message import SarpiMessage
 import discord
 import os
 from dotenv import load_dotenv
@@ -69,7 +69,7 @@ class DiscordAdapter():
             chat_id = self._discord_to_sarpi_id(message.author.id)
 
         # Prepare user metadata        
-        user = User(self._discord_to_sarpi_id(message.author.id), message.author.name, display_name)
+        user = SarpiUser(self._discord_to_sarpi_id(message.author.id), message.author.name, display_name)
 
         # Prepare lambda reply function to be used later by the respective command module.
         # A Message object will be provided to this function.
@@ -77,10 +77,10 @@ class DiscordAdapter():
         reply_func = lambda response : loop.create_task(message.channel.send(response.text))
 
         # Create Medium object with previous data
-        medium = Medium(self.PLATFORM_NAME, chat_id, reply_func, user)
+        medium = SarpiMedium(self.PLATFORM_NAME, chat_id, reply_func)
 
         # Create Message object
-        sarpi_message = SarpiMessage(message.content, command, args, medium)
+        sarpi_message = SarpiMessage(message.content, command, args, medium, user)
 
         # SarPi's dispatcher will send the message to the appropiate module
         self.sarpi_dispatcher.on_command(sarpi_message)

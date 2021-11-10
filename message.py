@@ -1,7 +1,9 @@
-from medium import Medium
+from medium import SarpiMedium
+from update import SarpiUpdate
+from user import SarpiUser
 
 
-class Message():
+class SarpiMessage(SarpiUpdate):
     '''
     Class to transfer text messages between SarPi's components
 
@@ -9,8 +11,6 @@ class Message():
         -text: full message
         -command: only contains the type of command
         -args: list of arguments after the command
-        -medium: medium in wich the message was received. Medium class object, containing functions
-            to reply to the message and info about where the messsage originated.
 
         Example:
             Received message: !alarm set 9 am
@@ -18,8 +18,8 @@ class Message():
             args = ['set', '9', 'am']
     '''
 
-    def __init__(self, text: str, command: str = None, args: list[str] = None, medium: Medium = None) -> None:
+    def __init__(self, text: str, command: str = None, args: list[str] = None, medium: SarpiMedium = None, user: SarpiUser = None) -> None:
+        super().__init__(medium, user)
         self.text = text
         self.command = command
         self.args = args
-        self.medium = medium

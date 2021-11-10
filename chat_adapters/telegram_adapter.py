@@ -1,6 +1,6 @@
-from user import User
-from medium import Medium
-from message import Message as SarpiMessage
+from user import SarpiUser
+from medium import SarpiMedium
+from message import SarpiMessage
 from telegram.ext import Updater, MessageHandler, Filters
 import os
 from dotenv import load_dotenv
@@ -60,17 +60,17 @@ class TelegramAdapter():
         command, args = self._extract_command_and_args(update.message.text)
 
         # Prepare user metadata
-        user = User(self._telegram_to_sarpi_id(update.effective_user.id), update.effective_user.username, update.effective_user.first_name)
+        user = SarpiUser(self._telegram_to_sarpi_id(update.effective_user.id), update.effective_user.username, update.effective_user.first_name)
 
         # Prepare lambda reply function to be used later by the respective command module.
         # A Message object will be provided to this function.
         reply_func = lambda message : context.bot.send_message(chat_id=update.effective_chat.id, text=message.text)
 
         # Create Medium object with previous data
-        medium = Medium(self.PLATFORM_NAME, self._telegram_to_sarpi_id(update.effective_chat.id), reply_func, user)
+        medium = SarpiMedium(self.PLATFORM_NAME, self._telegram_to_sarpi_id(update.effective_chat.id), reply_func)
 
         # Create Message object
-        sarpi_message = SarpiMessage(update.message.text, command, args, medium)
+        sarpi_message = SarpiMessage(update.message.text, command, args, medium, user)
 
         # SarPi's dispatcher will send the message to the appropiate module
         self.sarpi_dispatcher.on_command(sarpi_message)

@@ -1,4 +1,4 @@
-class User():
+class SarpiUser():
     """
     Contains information about the user who originated an event.
     

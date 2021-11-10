@@ -1,4 +1,4 @@
-from message import Message
+from message import SarpiMessage
 from modules import SarpiModule #Import interface
 
 """
@@ -10,7 +10,7 @@ class SarpiExampleModule(SarpiModule):
     MODULE_NAME = "Example Module" #The name of your module
     COMMAND_WORDS = ["hi", "thanks"] #List of commands this module will respond to
 
-    def process_message(self, message: Message):
+    def process_message(self, message: SarpiMessage):
         """
         This function analyzes the received command and returns a response.
 
@@ -23,11 +23,11 @@ class SarpiExampleModule(SarpiModule):
             args = ['set', '9', 'am']
 
         In this case we won't check the arguments.
-        Reply to the command with 'message.medium.reply(response: Message)'
+        Reply to the command with 'message.medium.reply(response: SarpiMessage)'
         """
 
         if (message.command == "hi"):
-            message.medium.reply(Message("Hello!"))
+            message.medium.reply(SarpiMessage("Hello!"))
         elif (message.command == "thanks"):
-            message.medium.reply(Message("You're welcome :)"))
+            message.medium.reply(SarpiMessage("You're welcome :)"))
     
