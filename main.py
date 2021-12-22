@@ -1,5 +1,4 @@
-from event import SarpiEvent
-from message import SarpiMessage
+from events.message import SarpiMessage
 from threading import Thread
 import asyncio
 
@@ -36,7 +35,7 @@ class SarpiDispatcher():
             else:
                 update.medium.reply(SarpiMessage("⛔ Command not found."))
                 
-        elif isinstance(update, SarpiEvent):
+        else:
             print("\nNew " + update.medium.platform + " event")
         
 

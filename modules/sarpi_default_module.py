@@ -1,4 +1,4 @@
-from message import SarpiMessage
+from events.message import SarpiMessage
 from modules import SarpiModule
 
 

@@ -1,7 +1,7 @@
 import asyncio
 from medium import SarpiMedium
 from user import SarpiUser
-from message import SarpiMessage
+from events.message import SarpiMessage
 import discord
 import os
 from dotenv import load_dotenv

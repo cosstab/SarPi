@@ -1,6 +1,6 @@
 """This is just a test of a second module"""
 
-from message import SarpiMessage
+from events.message import SarpiMessage
 from modules import SarpiModule
 
 

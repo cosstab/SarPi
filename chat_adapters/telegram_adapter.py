@@ -1,6 +1,6 @@
 from user import SarpiUser
 from medium import SarpiMedium
-from message import SarpiMessage
+from events.message import SarpiMessage
 from telegram.ext import Updater, MessageHandler, Filters
 import os
 from dotenv import load_dotenv

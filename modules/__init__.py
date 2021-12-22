@@ -1,4 +1,4 @@
-from message import SarpiMessage
+from events.message import SarpiMessage
 import pkgutil
 
 """SarPi command modules must inherit from this class"""
