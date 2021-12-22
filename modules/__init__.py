@@ -9,8 +9,8 @@ class SarpiModule():
     modules = [] #List where loaded module classes are saved
 
     # Subclasses will add themselves to the module dictionary
-    def __init_subclass__(cls):
-        print("Module loaded: " + cls.__name__)
+    def __init_subclass__(cls: "SarpiModule"):
+        print("Module loaded: " + cls.MODULE_NAME)
         super().__init_subclass__()
         cls.modules.append(cls)
 
