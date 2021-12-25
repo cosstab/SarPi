@@ -7,7 +7,14 @@ from dotenv import load_dotenv
 
 
 class TelegramAdapter():
+    '''
+    Telegram adapter will look for native commands (the ones starting with "/") and custom commands (you 
+    can select your own prefix for convenience). Disable privacy settings on BotFather for custom commands
+    on groups.
+    '''
+
     PLATFORM_NAME = "Telegram"
+    __ALTERNATIVE_COMMAND_PREFIX = '.' #Select your favorite command prefix for non native commands
 
 	# Initialize adapter, Telegram Updater and it's events
     def __init__(self, sarpi_dispatcher: 'SarpiDispatcher') -> None:
@@ -23,8 +30,11 @@ class TelegramAdapter():
         # Get the dispatcher to register handlers
         telegram_dispatcher = self.updater.dispatcher
 
-        # On every received command, on_message function will be executed
-        telegram_dispatcher.add_handler(MessageHandler(Filters.command, self._on_command))
+        # On every received native command, _on_command function will be executed
+        telegram_dispatcher.add_handler(MessageHandler(Filters.command, self._on_native_command))
+
+        # On every message, execute _on_message
+        telegram_dispatcher.add_handler(MessageHandler(Filters.text, self._on_message))
 
 
     def start(self) -> None:
@@ -42,7 +52,8 @@ class TelegramAdapter():
     def _extract_command_and_args(self, text: str) -> str:
         """
         Command example:
-            /alarm@SarPi set 9 am
+            Native: /alarm@SarPi set 9 am
+            Custom: .alarm set 9 am
         """
 
         text = text[1:] #Remove slash. Now, text = "alarm@SarPi set 9 am"
@@ -55,10 +66,19 @@ class TelegramAdapter():
     def _telegram_to_sarpi_id(self, id: int) -> str:
         return self.PLATFORM_NAME + str(id)
 
-    def _on_command(self, update, context) -> None:
+    def _on_message(self, update, context) -> None:
+        # Check for custom commands
+        if update.message.text.startswith(self.__ALTERNATIVE_COMMAND_PREFIX):
+            # Prepare command and arguments
+            command, args = self._extract_command_and_args(update.message.text)
+            self._proccess_command(command, args, update, context)
+
+    def _on_native_command(self, update, context) -> None:
         # Prepare command and arguments
         command, args = self._extract_command_and_args(update.message.text)
+        self._proccess_command(command, args, update, context)
 
+    def _proccess_command(self, command, args, update, context):
         # Prepare user metadata
         user = SarpiUser(self._telegram_to_sarpi_id(update.effective_user.id), update.effective_user.username, update.effective_user.first_name)
 
