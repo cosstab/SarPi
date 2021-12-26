@@ -1,3 +1,4 @@
+from telegram.ext.handler import Handler
 from user import SarpiUser
 from medium import SarpiMedium
 from events.message import SarpiMessage
@@ -35,6 +36,9 @@ class TelegramAdapter():
 
         # On every message, execute _on_message
         telegram_dispatcher.add_handler(MessageHandler(Filters.text, self._on_message))
+
+        # Show any other event for testing purposes
+        #telegram_dispatcher.add_handler(AnythingHandler(self._on_event))
 
 
     def start(self) -> None:
@@ -94,3 +98,15 @@ class TelegramAdapter():
 
         # SarPi's dispatcher will send the message to the appropiate module
         self.sarpi_dispatcher.on_command(sarpi_message)
+
+    def _on_event(self, update, context):
+        print("\n\nTelegram Event")
+        print(update)
+
+
+class AnythingHandler(Handler):
+    '''
+    Testing handler that will trigger the callback function on any not previously handled event
+    '''
+    def check_update(self, update):
+        return True
