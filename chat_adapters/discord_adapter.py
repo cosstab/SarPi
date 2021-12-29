@@ -1,7 +1,7 @@
 import asyncio
+from events.command import SarpiCommand
 from medium import SarpiMedium
 from user import SarpiUser
-from events.message import SarpiMessage
 import discord
 import os
 from dotenv import load_dotenv
@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 class DiscordAdapter():
     PLATFORM_NAME = "Discord"
     __COMMAND_PREFIX = '.' #Select your favorite command prefix
+
 
     # Initialize adapter, Discord client and it's events
     def __init__(self, sarpi_dispatcher: 'SarpiDispatcher') -> None:
@@ -53,8 +54,10 @@ class DiscordAdapter():
         
         return command, args
 
+
     def _discord_to_sarpi_id(self, id: int) -> str:
         return self.PLATFORM_NAME + str(id)
+
 
     async def _on_command(self, message) -> None:
         # Prepare command and arguments
@@ -80,7 +83,7 @@ class DiscordAdapter():
         medium = SarpiMedium(self.PLATFORM_NAME, chat_id, reply_func)
 
         # Create Message object
-        sarpi_message = SarpiMessage(message.content, command, args, medium, user)
+        sarpi_message = SarpiCommand(message.content, command, args, medium, user)
 
         # SarPi's dispatcher will send the message to the appropiate module
         self.sarpi_dispatcher.on_command(sarpi_message)

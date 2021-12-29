@@ -2,9 +2,9 @@ from telegram.ext.callbackcontext import CallbackContext
 from telegram.ext.handler import Handler
 from telegram.update import Update
 from events.chat_member_updated import ChatMemberUpdated
+from events.command import SarpiCommand
 from user import SarpiUser
 from medium import SarpiMedium
-from events.message import SarpiMessage
 from telegram.ext import Updater, MessageHandler, Filters
 import os
 from dotenv import load_dotenv
@@ -19,6 +19,7 @@ class TelegramAdapter():
 
     PLATFORM_NAME = "Telegram"
     __ALTERNATIVE_COMMAND_PREFIX = '.' #Select your favorite command prefix for non native commands
+
 
 	# Initialize adapter, Telegram Updater and it's events
     def __init__(self, sarpi_dispatcher: 'SarpiDispatcher') -> None:
@@ -72,8 +73,10 @@ class TelegramAdapter():
         
         return command, args
 
+
     def _telegram_to_sarpi_id(self, id: int) -> str:
         return self.PLATFORM_NAME + str(id)
+
 
     def _prepare_metadata(self, update: Update, context: CallbackContext):
         # Prepare user metadata
@@ -89,6 +92,7 @@ class TelegramAdapter():
 
         return medium, user
 
+
     def _on_message(self, update: Update, context: CallbackContext) -> None:
         # Check for custom commands
         if update.message.text.startswith(self.__ALTERNATIVE_COMMAND_PREFIX):
@@ -96,20 +100,23 @@ class TelegramAdapter():
             command, args = self._extract_command_and_args(update.message.text)
             self._proccess_command(command, args, update, context)
 
+
     def _on_native_command(self, update: Update, context: CallbackContext) -> None:
         # Prepare command and arguments
         command, args = self._extract_command_and_args(update.message.text)
         self._proccess_command(command, args, update, context)
 
+
     def _proccess_command(self, command, args, update: Update, context: CallbackContext):
         medium, user = self._prepare_metadata(update, context)
 
         # Create Message object
-        sarpi_message = SarpiMessage(update.message.text, command, args, medium, user)
+        sarpi_message = SarpiCommand(update.message.text, command, args, medium, user)
 
         # SarPi's dispatcher will send the message to the appropiate module
         self.sarpi_dispatcher.on_command(sarpi_message)
     
+
     def _on_user_join(self, update: Update, context: CallbackContext):
         medium, user = self._prepare_metadata(update, context)
 
@@ -119,6 +126,7 @@ class TelegramAdapter():
             update = ChatMemberUpdated(ChatMemberUpdated.UpdateType.USER_JOINED, affected_user, 
                                         user.id==self.updater.bot.id, medium, user)
             self.sarpi_dispatcher.on_update(update)
+
 
     def _on_event(self, update: Update, context: CallbackContext):
         print("\n\nTelegram Event")

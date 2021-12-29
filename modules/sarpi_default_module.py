@@ -1,3 +1,4 @@
+from events.command import SarpiCommand
 from events.message import SarpiMessage
 from modules import SarpiModule
 
@@ -30,7 +31,7 @@ class SarpiDefaultModule(SarpiModule):
 
         return response
 
-    def process_command(self, message: SarpiMessage):
+    def process_command(self, message: SarpiCommand):
         if (message.command == "list"):
             response = "List of available commands:\n" + self.get_commands() #List available commands
         else:

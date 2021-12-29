@@ -1,4 +1,4 @@
-from events.message import SarpiMessage
+from events.command import SarpiCommand
 import pkgutil
 
 from update import SarpiUpdate
@@ -17,7 +17,7 @@ class SarpiModule():
         super().__init_subclass__()
         cls.modules.append(cls)
 
-    def process_command(self, message: SarpiMessage) -> str:
+    def process_command(self, message: SarpiCommand) -> str:
         """
         This function analyzes the received command to produce (or not) a response.
 

@@ -1,3 +1,4 @@
+from events.command import SarpiCommand
 from events.message import SarpiMessage
 from threading import Thread
 import asyncio
@@ -34,17 +35,17 @@ class SarpiDispatcher():
 
     # Function to be called on every received update, which will be dispatched to the appropiate module
     def on_update(self, update: SarpiUpdate):
-        if isinstance(update, SarpiMessage):
-            self.on_command(update)
-        else:
-            print("\nNew " + update.medium.platform + " event: " + update.__class__.__name__)
+        print("\nNew " + update.medium.platform + " update: " + update.__class__.__name__)
+
+        if isinstance(update, SarpiCommand):
+            self.on_command(update) # Dispatch to modules asking for commands
             
-            # Dispatch event to each module asking for this class of event
-            for module in self.event_modules[update.__class__]:
-                module.process_update(update)
+        # Dispatch event to each module asking for this class of event
+        for module in self.event_modules[update.__class__]:
+            module.process_update(update)
                     
 
-    def on_command(self, update: SarpiUpdate):   
+    def on_command(self, update: SarpiCommand):   
             print("\nNew " + update.medium.platform + " command")
             print("Command: " + update.command)
             print("Arguments: " + str(update.args))
