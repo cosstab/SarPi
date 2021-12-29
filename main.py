@@ -38,15 +38,17 @@ class SarpiDispatcher():
         print("\nNew " + update.medium.platform + " update: " + update.__class__.__name__)
 
         if isinstance(update, SarpiCommand):
-            self.on_command(update) # Dispatch to modules asking for commands
+            self._on_command(update) # Dispatch to modules asking for commands
             
         # Dispatch event to each module asking for this class of event
-        for module in self.event_modules[update.__class__]:
-            module.process_update(update)
+        try:
+            for module in self.event_modules[update.__class__]:
+                module.process_update(update)
+        except KeyError:
+            pass
                     
 
-    def on_command(self, update: SarpiCommand):   
-            print("\nNew " + update.medium.platform + " command")
+    def _on_command(self, update: SarpiCommand):
             print("Command: " + update.command)
             print("Arguments: " + str(update.args))
 

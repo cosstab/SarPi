@@ -86,4 +86,4 @@ class DiscordAdapter():
         sarpi_message = SarpiCommand(message.content, command, args, medium, user)
 
         # SarPi's dispatcher will send the message to the appropiate module
-        self.sarpi_dispatcher.on_command(sarpi_message)
+        self.sarpi_dispatcher.on_update(sarpi_message)
