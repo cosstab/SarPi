@@ -1,7 +1,6 @@
 from __future__ import annotations #Solution for circular dependencies when importing Message for annotations
 #from message import SarpiMessage
 from typing import Callable
-from user import SarpiUser
 
 
 class SarpiMedium():

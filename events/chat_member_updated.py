@@ -13,7 +13,7 @@ class ChatMemberUpdated(SarpiUpdate):
         affected_user: the user who joined or left the group.
         is_this_bot: boolean to easily check if the affected user is the bot itself.
     
-    Extra info: medium attribute includes the user who adds or kicks out the affected_user. It can
+    Extra info: user inherited attribute refers to the user who adds or kicks out the affected_user. It can
     be the affected_user himself in case he joined from a link or lefts on his own.
     """
     class UpdateType(Enum):
