@@ -10,7 +10,7 @@ class SarpiExampleModule(SarpiModule):
     MODULE_NAME = "Example Module" #The name of your module
     COMMAND_WORDS = ["hi", "thanks"] #List of commands this module will respond to
 
-    def process_message(self, message: SarpiMessage):
+    def process_command(self, message: SarpiMessage):
         """
         This function analyzes the received command and returns a response.
 

@@ -30,7 +30,7 @@ class SarpiDefaultModule(SarpiModule):
 
         return response
 
-    def process_message(self, message: SarpiMessage):
+    def process_command(self, message: SarpiMessage):
         if (message.command == "list"):
             response = "List of available commands:\n" + self.get_commands() #List available commands
         else:

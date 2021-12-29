@@ -9,8 +9,8 @@ class SarpiMessage(SarpiUpdate):
 
     Attributes:
         -text: full message
-        -command: only contains the type of command
-        -args: list of arguments after the command
+        -command (optional): only contains the type of command 
+        -args (optional): list of arguments after the command 
 
         Example:
             Received message: !alarm set 9 am

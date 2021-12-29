@@ -16,14 +16,35 @@ from update import SarpiUpdate
 class SarpiDispatcher():
     def __init__(self) -> None:
         self.command_modules = {} #Dict of commands and SarpiModule objects
+        self.event_modules = {} #Dict of events and lists of SarpiModule objects
 
+        # Search for commands and events declared by the modules
         for module in SarpiModule.modules:
             module_instance = module()
+            
             for command in module.COMMAND_WORDS:
                 self.command_modules[command] = module_instance
+            
+            for event in module.EVENTS:
+                try:
+                    self.event_modules[event].append(module_instance)
+                except KeyError:
+                    self.event_modules[event] = [module_instance]
 
-    def on_command(self, update: SarpiUpdate) -> str:
+
+    # Function to be called on every received update, which will be dispatched to the appropiate module
+    def on_update(self, update: SarpiUpdate):
         if isinstance(update, SarpiMessage):
+            self.on_command(update)
+        else:
+            print("\nNew " + update.medium.platform + " event: " + update.__class__.__name__)
+            
+            # Dispatch event to each module asking for this class of event
+            for module in self.event_modules[update.__class__]:
+                module.process_update(update)
+                    
+
+    def on_command(self, update: SarpiUpdate):   
             print("\nNew " + update.medium.platform + " command")
             print("Command: " + update.command)
             print("Arguments: " + str(update.args))
@@ -31,12 +52,9 @@ class SarpiDispatcher():
             command_module = self.command_modules.get(update.command)
 
             if command_module is not None:
-                command_module.process_message(update)
+                command_module.process_command(update)
             else:
                 update.medium.reply(SarpiMessage("⛔ Command not found."))
-                
-        else:
-            print("\nNew " + update.medium.platform + " event")
         
 
 sarpi_dispatcher = SarpiDispatcher()
