@@ -67,23 +67,23 @@ class DiscordAdapter():
         if isinstance(message.author, discord.Member):
             display_name = message.author.nick
             chat_id = message.author.guild
-        elif isinstance(message.author, discord.User):
-            display_name = None
+        else: #Author is chatting via DM
+            display_name = message.author.name
             chat_id = self._discord_to_sarpi_id(message.author.id)
 
         # Prepare user metadata        
         user = SarpiUser(self._discord_to_sarpi_id(message.author.id), message.author.name, display_name)
 
         # Prepare lambda reply function to be used later by the respective command module.
-        # A Message object will be provided to this function.
+        # A SarpiMessage object will be provided to this function.
         loop = asyncio.get_event_loop()
         reply_func = lambda response : loop.create_task(message.channel.send(response.text))
 
         # Create Medium object with previous data
         medium = SarpiMedium(self.PLATFORM_NAME, chat_id, reply_func)
 
-        # Create Message object
-        sarpi_message = SarpiCommand(message.content, command, args, medium, user)
+        # Create SarpiCommand object
+        sarpi_command = SarpiCommand(message.content, command, args, medium, user)
 
-        # SarPi's dispatcher will send the message to the appropiate module
-        self.sarpi_dispatcher.on_update(sarpi_message)
+        # SarPi's dispatcher will send the command to the appropiate module
+        self.sarpi_dispatcher.on_update(sarpi_command)

@@ -41,6 +41,7 @@ class TelegramAdapter():
         # On every message, execute _on_message
         telegram_dispatcher.add_handler(MessageHandler(Filters.text, self._on_message))
 
+        # Handle other events
         telegram_dispatcher.add_handler(MessageHandler(Filters.status_update.new_chat_members, self._on_user_join))
 
         # Show any other event for testing purposes
@@ -84,7 +85,7 @@ class TelegramAdapter():
                          update.effective_user.first_name)
 
         # Prepare lambda reply function to be used later by the respective command module.
-        # A Message object will be provided to this function.
+        # A SarpiMessage object will be provided to this function.
         reply_func = lambda message : context.bot.send_message(chat_id=update.effective_chat.id, text=message.text)
 
         # Create Medium object with previous data
@@ -110,11 +111,11 @@ class TelegramAdapter():
     def _proccess_command(self, command, args, update: Update, context: CallbackContext):
         medium, user = self._prepare_metadata(update, context)
 
-        # Create Message object
-        sarpi_message = SarpiCommand(update.message.text, command, args, medium, user)
+        # Create SarpiCommand object
+        sarpi_command = SarpiCommand(update.message.text, command, args, medium, user)
 
-        # SarPi's dispatcher will send the message to the appropiate module
-        self.sarpi_dispatcher.on_update(sarpi_message)
+        # SarPi's dispatcher will send the command to the appropiate module
+        self.sarpi_dispatcher.on_update(sarpi_command)
     
 
     def _on_user_join(self, update: Update, context: CallbackContext):

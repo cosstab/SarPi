@@ -4,11 +4,11 @@ class SarpiUser():
     
     Attributes (not every attribute might be available on every platform):
         -id: unique identifier of the user among all platforms.
-        -nick: user's nickname.
-        -name: user's formal name.
+        -username: user's nickname.
+        -display_name: user's displayed name.
     """
 
-    def __init__(self, id: str, user_name: str = None, display_name: str = None) -> None:
+    def __init__(self, id: str, username: str = None, display_name: str = None) -> None:
         self.id = id
-        self.user_name = user_name
+        self.username = username
         self.display_name = display_name
