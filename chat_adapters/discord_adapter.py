@@ -16,7 +16,7 @@ class DiscordAdapter():
         self.sarpi_dispatcher = sarpi_dispatcher
         
         # Create Discord client
-        self.bot = discord.Client()
+        self.bot = discord.Bot()
 
         @self.bot.event
         async def on_ready():

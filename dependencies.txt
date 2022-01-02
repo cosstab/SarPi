@@ -1,4 +1,4 @@
 pip libraries:
 	python-telegram-bot 
-	py-cord
+	py-cord (Development version) - pip install git+https://github.com/Pycord-Development/pycord
 	python-dotenv
