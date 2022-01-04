@@ -1,5 +1,7 @@
 import asyncio
 from discord.commands.context import ApplicationContext
+from discord.member import Member
+from events.chat_member_updated import ChatMemberUpdated
 from events.command import SarpiCommand
 from medium import SarpiMedium
 from user import SarpiUser
@@ -15,9 +17,13 @@ class DiscordAdapter():
     # Initialize adapter, Discord client and it's events
     def __init__(self, sarpi_dispatcher: 'SarpiDispatcher') -> None:
         self.sarpi_dispatcher = sarpi_dispatcher
-        
+
+        # Add Discord intents for member updates
+        intents = discord.Intents.default()
+        intents.members = True
+      
         # Create Discord client
-        self.bot = discord.Bot()
+        self.bot = discord.Bot(intents=intents)
 
         # Register slash commands. Command parameters are not available at the moment
         for command in sarpi_dispatcher.command_modules:
@@ -36,6 +42,21 @@ class DiscordAdapter():
 
             if message.content.startswith(self.__COMMAND_PREFIX):
                 await self._on_custom_command(message)
+        
+        @self.bot.event
+        async def on_member_join(member: Member):
+            guild = member.guild
+            if guild.system_channel is not None:
+                # Prepare lambda reply function to be used later by the respective command module.
+                # A SarpiMessage object will be provided to this function.
+                loop = asyncio.get_event_loop()
+                reply_func = lambda response : loop.create_task(guild.system_channel.send(response.text))
+
+                user = self._discord_to_sarpi_user(member)
+                medium = SarpiMedium(self.PLATFORM_NAME, self._discord_to_sarpi_id(member.guild), reply_func)
+                update = ChatMemberUpdated(ChatMemberUpdated.UpdateType.USER_JOINED, user, False, medium, user)
+
+                self.sarpi_dispatcher.on_update(update)
 
     
     async def start(self) -> None:
@@ -63,6 +84,16 @@ class DiscordAdapter():
 
     def _discord_to_sarpi_id(self, id: int) -> str:
         return self.PLATFORM_NAME + str(id)
+    
+
+    def _discord_to_sarpi_user(self, user: discord.User) -> SarpiUser:
+        # Check if user has a nickname
+        if user.nick is None:
+            display_name = user.name
+        else:
+            display_name = user.nick
+        
+        return SarpiUser(self._discord_to_sarpi_id(user.id), user.name, display_name)
 
 
     async def _on_custom_command(self, message) -> None:
@@ -90,16 +121,14 @@ class DiscordAdapter():
 
 
     async def _on_command(self, message, reply_func, command, args=[]):
+        # Prepare user metadata        
+        user = self._discord_to_sarpi_user(message.author)
+
         # Check if author of the message is a member of a server or an user via DM
         if isinstance(message.author, discord.Member):
-            display_name = message.author.nick
-            chat_id = message.author.guild
+            chat_id = self._discord_to_sarpi_id(message.author.guild)
         else: #Author is chatting via DM
-            display_name = message.author.name
             chat_id = self._discord_to_sarpi_id(message.author.id)
-
-        # Prepare user metadata        
-        user = SarpiUser(self._discord_to_sarpi_id(message.author.id), message.author.name, display_name)
 
         # Create Medium object with previous data
         medium = SarpiMedium(self.PLATFORM_NAME, chat_id, reply_func)
