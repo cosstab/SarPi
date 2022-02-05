@@ -11,12 +11,15 @@ from dotenv import load_dotenv
 
 class DiscordAdapter():
     PLATFORM_NAME = "Discord"
-    __COMMAND_PREFIX = '.' #Select your favorite command prefix
-
 
     # Initialize adapter, Discord client and it's events
     def __init__(self, sarpi_dispatcher: 'SarpiDispatcher') -> None:
         self.sarpi_dispatcher = sarpi_dispatcher
+
+        # Load API token and command prefix from environment variables on .env file
+        load_dotenv()
+        self.__API_TOKEN = os.getenv('DISCORD_TOKEN')
+        COMMAND_PREFIX = os.getenv('DISCORD_COMMAND_PREFIX')
 
         # Add Discord intents for member updates
         intents = discord.Intents.default()
@@ -40,7 +43,7 @@ class DiscordAdapter():
             if message.author == self.bot.user:
                 return
 
-            if message.content.startswith(self.__COMMAND_PREFIX):
+            if message.content.startswith(COMMAND_PREFIX):
                 await self._on_custom_command(message)
         
         @self.bot.event
@@ -60,12 +63,8 @@ class DiscordAdapter():
 
     
     async def start(self) -> None:
-        # Load API token from environment variables on .env file
-        load_dotenv()
-        API_TOKEN = os.getenv('DISCORD_TOKEN')
-
         # Start bot
-        await self.bot.start(API_TOKEN)
+        await self.bot.start(self.__API_TOKEN)
 
     
     def _extract_command_and_args(self, text: str) -> str:

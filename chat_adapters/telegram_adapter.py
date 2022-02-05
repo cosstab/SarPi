@@ -18,16 +18,16 @@ class TelegramAdapter():
     '''
 
     PLATFORM_NAME = "Telegram"
-    __ALTERNATIVE_COMMAND_PREFIX = '.' #Select your favorite command prefix for non native commands
 
 
 	# Initialize adapter, Telegram Updater and it's events
     def __init__(self, sarpi_dispatcher: 'SarpiDispatcher') -> None:
         self.sarpi_dispatcher = sarpi_dispatcher
         
-        # Load API token from environment variables on .env file
+        # Load API token and command prefix from environment variables on .env file
         load_dotenv()
         API_TOKEN = os.getenv('TELEGRAM_TOKEN')
+        self.__ALTERNATIVE_COMMAND_PREFIX = os.getenv('TELEGRAM_COMMAND_PREFIX')
 
         # Create the Updater and pass it your bot's token.
         self.updater = Updater(API_TOKEN)
