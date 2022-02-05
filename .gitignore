@@ -136,3 +136,9 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+
+# Ignore user modules
+modules/*
+!modules/sarpi*
+!modules/__init__.py
