@@ -13,7 +13,12 @@ class SarpiModule():
 
     # Subclasses will add themselves to the module dictionary
     def __init_subclass__(cls: "SarpiModule"):
+        # Use class name for module identification in case MODULE_NAME was not specified
+        if cls.MODULE_NAME == "":
+            cls.MODULE_NAME = cls.__name__
+
         print("Loading module: " + cls.MODULE_NAME)
+
         super().__init_subclass__()
         cls.modules.append(cls)
 
