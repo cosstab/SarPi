@@ -19,7 +19,13 @@ class SarpiDispatcher():
         self.event_modules = {} #Dict of events and lists of SarpiModule objects
 
         # Search for commands and events declared by the modules
-        for module in SarpiModule.modules:
+        for module in SarpiModule.__subclasses__():
+            # Use class name for module identification in case MODULE_NAME was not specified
+            if module.MODULE_NAME == "":
+                module.MODULE_NAME = module.__name__
+
+            print("Loading module: " + module.MODULE_NAME)
+            
             module_instance = module()
             
             for command in module.COMMAND_WORDS:
