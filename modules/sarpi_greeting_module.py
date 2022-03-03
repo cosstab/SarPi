@@ -9,9 +9,9 @@ Modules with this name will be ignored
 
 class SarpiGreetingModule(SarpiModule):
     MODULE_NAME = "SarPI Greeting Module"
-    EVENTS = [ChatMemberUpdated]
 
-    def process_update(self, chat_member_update: ChatMemberUpdated):
+    @SarpiModule.event(ChatMemberUpdated)
+    def greet_new_user(self, chat_member_update: ChatMemberUpdated):
         """
         This function will be called when a ChatMemberUpdated event is generated. When a user joins
         we'll respond with a friendly greeting.

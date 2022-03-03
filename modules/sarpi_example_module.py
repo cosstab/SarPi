@@ -1,33 +1,35 @@
-from events.command import SarpiCommand
 from events.message import SarpiMessage
-from modules import SarpiModule #Import interface
+from modules import SarpiModule
 
 """
-CHANGE THE NAME OF THIS FILE
+CHANGE THE NAME OF THIS FILE WHEN CREATING A NEW MODULE
 Modules with this name will be ignored
 """
 
 class SarpiExampleModule(SarpiModule):
-    COMMAND_WORDS = ["hi", "thanks"] #List of commands this module will respond to
+    """
+    To create a new command you need to define a new function preceded by
+    "@SarpiModule.command" decorator. The name of the function will be the command
+    name.
 
-    def process_command(self, message: SarpiCommand):
-        """
-        This function analyzes the received command and returns a response.
+    When the command is used, the respective function will receive a SarpiCommand
+    object, which you can use to get more information and create a response:
 
-        -message.command: only contains the type of command
-        -message.args: list of arguments after the command
+    -command.args: list of arguments after the command
+    -command.command: only contains the name of the command
 
-        Example:
-            Received message: !alarm set 9 am
-            command = 'alarm'
-            args = ['set', '9', 'am']
+    Example:
+        Received command: !alarm set 9 am
+        command = 'alarm'
+        args = ['set', '9', 'am']
 
-        In this case we won't check the arguments.
-        Reply to the command with 'message.medium.reply(response: SarpiMessage)'
-        """
+    Reply to the command with 'message.medium.reply(response: SarpiMessage)'
+    """
 
-        if (message.command == "hi"):
-            message.medium.reply(SarpiMessage("Hello!"))
-        elif (message.command == "thanks"):
-            message.medium.reply(SarpiMessage("You're welcome :)"))
+    @SarpiModule.command
+    def hi(self, command):
+        command.medium.reply(SarpiMessage("Hello!"))
     
+    @SarpiModule.command
+    def thanks(self, command):
+        command.medium.reply(SarpiMessage("You're welcome :)"))

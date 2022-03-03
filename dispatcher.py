@@ -2,6 +2,7 @@ from events.command import SarpiCommand
 from events.message import SarpiMessage
 from modules import SarpiModule
 from update import SarpiUpdate
+from collections import defaultdict
 
 # Import modules
 from modules import SarpiModule
@@ -17,6 +18,8 @@ class SarpiDispatcher():
     def __init__(self) -> None:
         self.command_modules = {} #Dict of commands and SarpiModule objects
         self.event_modules = {} #Dict of events and lists of SarpiModule objects
+        self.command_managers = {}
+        self.event_managers = defaultdict(list)
 
         # Search for commands and events declared by the modules
         for module in SarpiModule.__subclasses__():
@@ -25,8 +28,26 @@ class SarpiDispatcher():
                 module.MODULE_NAME = module.__name__
 
             print("Loading module: " + module.MODULE_NAME)
-            
+
             module_instance = module()
+
+            # Search for command manager functions on the module that was just instantiated
+            for command_name, command_func in SarpiModule.command_functions.items():
+                class_name, function_name = command_func.split('.')
+
+                if class_name == module.__name__:
+                    self.command_managers[command_name] = getattr(module_instance, function_name)
+                    print("\tRegistered " + command_name + " command")
+            
+            # Search for event manager functions on the instantiated module
+            for event_class, event_func_list in SarpiModule.event_functions.items():
+                for event_func in event_func_list:
+                    class_name, function_name = event_func.split('.')
+
+                    if class_name == module.__name__:
+                        function = getattr(module_instance, function_name)
+                        self.event_managers[event_class].append(function)
+                        print("\tRegistered " + event_class.__name__ + " event manager")
             
             for command in module.COMMAND_WORDS:
                 self.command_modules[command] = module_instance
@@ -49,6 +70,8 @@ class SarpiDispatcher():
         try:
             for module in self.event_modules[update.__class__]:
                 module.process_update(update)
+            for event_manager in self.event_managers[update.__class__]:
+                event_manager(update)
         except KeyError:
             pass
                     
@@ -61,5 +84,7 @@ class SarpiDispatcher():
 
             if command_module is not None:
                 command_module.process_command(update)
+            elif (command_func := self.command_managers.get(update.command)) is not None:
+                command_func(update)
             else:
                 update.medium.reply(SarpiMessage("⛔ Command not found."))
