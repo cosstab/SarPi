@@ -16,10 +16,8 @@ class SarpiDispatcher():
     '''
 
     def __init__(self) -> None:
-        self.command_modules = {} #Dict of commands and SarpiModule objects
-        self.event_modules = {} #Dict of events and lists of SarpiModule objects
-        self.command_managers = {}
-        self.event_managers = defaultdict(list)
+        self.command_managers = {} #Dict of command words and managing functions
+        self.event_managers = defaultdict(list)  #Dict of event classes and lists of managing functions ( dict(k,[]) )
 
         # Search for commands and events declared by the modules
         for module in SarpiModule.__subclasses__():
@@ -48,15 +46,6 @@ class SarpiDispatcher():
                         function = getattr(module_instance, function_name)
                         self.event_managers[event_class].append(function)
                         print("\tRegistered " + event_class.__name__ + " event manager")
-            
-            for command in module.COMMAND_WORDS:
-                self.command_modules[command] = module_instance
-            
-            for event in module.EVENTS:
-                try:
-                    self.event_modules[event].append(module_instance)
-                except KeyError:
-                    self.event_modules[event] = [module_instance]
 
 
     # Function to be called on every received update, which will be dispatched to the appropiate module
@@ -68,23 +57,17 @@ class SarpiDispatcher():
             
         # Dispatch event to each module asking for this class of event
         try:
-            for module in self.event_modules[update.__class__]:
-                module.process_update(update)
             for event_manager in self.event_managers[update.__class__]:
                 event_manager(update)
         except KeyError:
             pass
-                    
+            
 
     def _on_command(self, update: SarpiCommand):
             print("Command: " + update.command)
             print("Arguments: " + str(update.args))
 
-            command_module = self.command_modules.get(update.command)
-
-            if command_module is not None:
-                command_module.process_command(update)
-            elif (command_func := self.command_managers.get(update.command)) is not None:
+            if (command_func := self.command_managers.get(update.command)) is not None:
                 command_func(update)
             else:
                 update.medium.reply(SarpiMessage("⛔ Command not found."))

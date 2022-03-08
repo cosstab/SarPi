@@ -9,12 +9,9 @@ from update import SarpiUpdate
 class SarpiModule():
     MODULE_NAME = "" #Name of the module (will use class' name in case it's not overriden)
 
-    command_functions = {} #Dict of command words and managing function's qualified name
+    command_functions = {} #Dict of command words and managing function's qualified names
     event_functions = defaultdict(list) #Dict of event classes and lists of managing function's qualified name ( dict(k,[]) )
 
-    # USE OF THESE VARIABLES WON'T BE SUPPORTED ON FUTURE VERSIONS, DON'T USE THEM!
-    COMMAND_WORDS = [] #List of commands this module will respond to
-    EVENTS = [] #List of SarpiUpdate classes the module will receive instances of
 
     def command(func : Callable):
         """
@@ -27,6 +24,23 @@ class SarpiModule():
         SarpiModule.command_functions[func.__name__] = func.__qualname__
         
         return func
+
+    def multicommand(commands):
+        """
+        Use this decorator in case you want to manage multiple commands with only one function.
+        This is useful in case you want to programatically define the list of available commands.
+
+        Args:
+            commands: list of command words the decorated function will manage.
+        """
+
+        def multicommand_decorator(func: Callable):
+            for command in commands:
+                SarpiModule.command_functions[command] = func.__qualname__
+
+            return func
+        
+        return multicommand_decorator
     
     def event(event_type: SarpiUpdate):
         """
@@ -46,32 +60,6 @@ class SarpiModule():
         
         return event_decorator
 
-    def process_command(self, message: SarpiCommand) -> str:
-        """
-        IMPLEMENTING THIS FUNCTION FOR COMMAND PROCESSING IS NOT RECOMENDED AND WILL NOT BE
-        SUPPORTED IN THE FUTURE. Use decorators instead.
-
-        This function analyzes the received command to produce (or not) a response.
-
-        -message.command: only contains the type of command
-        -message.args: list of arguments after the command
-
-        Example:
-            Received message: !alarm set 9 am
-            command = 'alarm'
-            args = ['set', '9', 'am']
-        
-        Reply to the command with 'message.medium.reply(response: SarpiMessage)'
-        """
-    
-    def process_update(self, update: SarpiUpdate):
-        """
-        IMPLEMENTING THIS FUNCTION FOR EVENT PROCESSING IS NOT RECOMENDED AND WILL NOT BE
-        SUPPORTED IN THE FUTURE. Use decorators instead.
-
-        This function will receive updates for events declared on EVENT list. Check events folder
-        for more information on available events.
-        """
 
 # Import every module in modules folder, except example module
 __all__ = list(module_name for _, module_name, _ in pkgutil.iter_modules(["modules"]))

@@ -12,16 +12,14 @@ class SarpiDefaultModule(SarpiModule):
         "ping": "Pong! 🏓",
         "list": ""
     }
-    
-    COMMAND_WORDS = __responses.keys()
 
     def get_commands(self):
         command_list = []
         response = ""
 
         # Get commands from every installed module
-        for cls in self.modules:
-            command_list += cls.COMMAND_WORDS
+        for command_func in self.command_functions:
+            command_list.append(command_func)
         
         command_list.sort()
         
@@ -31,6 +29,7 @@ class SarpiDefaultModule(SarpiModule):
 
         return response
 
+    @SarpiModule.multicommand(__responses.keys())
     def process_command(self, message: SarpiCommand):
         if (message.command == "list"):
             response = "List of available commands:\n" + self.get_commands() #List available commands

@@ -2,10 +2,6 @@ from events.chat_member_updated import ChatMemberUpdated
 from events.message import SarpiMessage
 from modules import SarpiModule #Import interface
 
-"""
-CHANGE THE NAME OF THIS FILE
-Modules with this name will be ignored
-"""
 
 class SarpiGreetingModule(SarpiModule):
     MODULE_NAME = "SarPI Greeting Module"
