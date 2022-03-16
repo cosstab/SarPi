@@ -1,11 +1,12 @@
 from telegram.ext.callbackcontext import CallbackContext
 from telegram.ext.handler import Handler
 from telegram.update import Update
+from telegram.ext import Updater, MessageHandler, Filters, CommandHandler
+from telegram.bot import BotCommand
 from events.chat_member_updated import ChatMemberUpdated
 from events.command import SarpiCommand
 from user import SarpiUser
 from medium import SarpiMedium
-from telegram.ext import Updater, MessageHandler, Filters
 import os
 from dotenv import load_dotenv
 
@@ -35,8 +36,14 @@ class TelegramAdapter():
         # Get the dispatcher to register handlers
         telegram_dispatcher = self.updater.dispatcher
 
-        # On every received native command, _on_command function will be executed
-        telegram_dispatcher.add_handler(MessageHandler(Filters.command, self._on_native_command))
+        # Set on_native_command as the handler of registered native commands
+        commands = []
+
+        for command in sarpi_dispatcher.command_managers:
+            commands.append(BotCommand(command, "."))
+            telegram_dispatcher.add_handler(CommandHandler(command, self._on_native_command))
+        
+        self.updater.bot.set_my_commands(commands) #Register commands for autocompletion (TODO: add command description)
 
         # On every message, execute _on_message
         telegram_dispatcher.add_handler(MessageHandler(Filters.text, self._on_message))
