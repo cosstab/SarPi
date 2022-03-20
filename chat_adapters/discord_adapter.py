@@ -21,9 +21,10 @@ class DiscordAdapter():
         self.__API_TOKEN = os.getenv('DISCORD_TOKEN')
         COMMAND_PREFIX = os.getenv('DISCORD_COMMAND_PREFIX')
 
-        # Add Discord intents for member updates
+        # Add Discord intents for member updates and message content (needs to be enabled on Discord developer portal)
         intents = discord.Intents.default()
         intents.members = True
+        intents.message_content = True
       
         # Create Discord client
         self.bot = discord.Bot(intents=intents)
