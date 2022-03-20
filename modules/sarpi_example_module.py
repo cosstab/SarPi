@@ -26,10 +26,10 @@ class SarpiExampleModule(SarpiModule):
     Reply to the command with 'message.medium.reply(response: SarpiMessage)'
     """
 
-    @SarpiModule.command
+    @SarpiModule.command()
     def hi(self, command):
         command.medium.reply(SarpiMessage("Hello!"))
     
-    @SarpiModule.command
+    @SarpiModule.command()
     def thanks(self, command):
         command.medium.reply(SarpiMessage("You're welcome :)"))

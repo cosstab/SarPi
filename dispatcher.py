@@ -16,7 +16,7 @@ class SarpiDispatcher():
     '''
 
     def __init__(self) -> None:
-        self.command_managers = {} #Dict of command words and managing functions
+        self.command_managers = {} #Dict of command words and tuples of managing functions and command descriptions dict(cw,(mf,cd))
         self.event_managers = defaultdict(list)  #Dict of event classes and lists of managing functions ( dict(k,[]) )
 
         # Search for commands and events declared by the modules
@@ -30,11 +30,11 @@ class SarpiDispatcher():
             module_instance = module()
 
             # Search for command manager functions on the module that was just instantiated
-            for command_name, command_func in SarpiModule.command_functions.items():
+            for command_name, command_func, description in SarpiModule.command_functions:
                 class_name, function_name = command_func.split('.')
 
                 if class_name == module.__name__:
-                    self.command_managers[command_name] = getattr(module_instance, function_name)
+                    self.command_managers[command_name] = getattr(module_instance, function_name), description
                     print("\tRegistered " + command_name + " command")
             
             # Search for event manager functions on the instantiated module
@@ -68,6 +68,6 @@ class SarpiDispatcher():
             print("Arguments: " + str(update.args))
 
             if (command_func := self.command_managers.get(update.command)) is not None:
-                command_func(update)
+                command_func[0](update)
             else:
                 update.medium.reply(SarpiMessage("⛔ Command not found."))

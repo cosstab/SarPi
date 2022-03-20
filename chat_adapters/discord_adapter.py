@@ -30,8 +30,9 @@ class DiscordAdapter():
         self.bot = discord.Bot(intents=intents)
 
         # Register slash commands. Command parameters are not available at the moment
-        for command in sarpi_dispatcher.command_managers:
-            slash_command = discord.commands.SlashCommand(func=self._on_slash_command, name=command)
+        for command, func_descr in sarpi_dispatcher.command_managers.items():
+            description = func_descr[1]
+            slash_command = discord.commands.SlashCommand(func=self._on_slash_command, name=command, description=description)
             self.bot.add_application_command(slash_command)
 
         @self.bot.event

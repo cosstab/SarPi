@@ -7,36 +7,39 @@ from update import SarpiUpdate
 
 """SarPi command modules must inherit from this class"""
 class SarpiModule():
-    MODULE_NAME = "" #Name of the module (will use class' name in case it's not overriden)
+    MODULE_NAME = "" #Name of the module (will use class name in case it's not overriden)
 
-    command_functions = {} #Dict of command words and managing function's qualified names
-    event_functions = defaultdict(list) #Dict of event classes and lists of managing function's qualified name ( dict(k,[]) )
+    command_functions = [] #List of tuples containing command words, managing function qualified names and command descriptions ( [(cw,qn,cd),] )
+    event_functions = defaultdict(list) #Dict of event classes and lists of managing function qualified name ( dict(k,[]) )
 
 
-    def command(func : Callable):
+    def command(description="."):
         """
-        Decorator that will add a function to the list of available command managers of the bot.
+        Decorator that will add a function and command description to the list of available command managers of the bot.
 
         The decorated function will analyze the received command (contained on a SarpiCommand object) 
         to produce (or not produce) a response.
         """
 
-        SarpiModule.command_functions[func.__name__] = func.__qualname__
+        def command_decorator(func : Callable):
+            SarpiModule.command_functions.append((func.__name__, func.__qualname__, description))
         
-        return func
+            return func
+        
+        return command_decorator
 
-    def multicommand(commands):
+    def multicommand(commands_and_descriptions):
         """
         Use this decorator in case you want to manage multiple commands with only one function.
         This is useful in case you want to programatically define the list of available commands.
 
         Args:
-            commands: list of command words the decorated function will manage.
+            commands: list of tuples containing a command word and it's description.
         """
 
         def multicommand_decorator(func: Callable):
-            for command in commands:
-                SarpiModule.command_functions[command] = func.__qualname__
+            for command, description in commands_and_descriptions:
+                SarpiModule.command_functions.append((command, func.__qualname__, description))
 
             return func
         

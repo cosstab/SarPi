@@ -39,11 +39,12 @@ class TelegramAdapter():
         # Set on_native_command as the handler of registered native commands
         commands = []
 
-        for command in sarpi_dispatcher.command_managers:
-            commands.append(BotCommand(command, "."))
+        for command, func_descr in sarpi_dispatcher.command_managers.items():
+            description = func_descr[1]
+            commands.append(BotCommand(command, description))
             telegram_dispatcher.add_handler(CommandHandler(command, self._on_native_command))
         
-        self.updater.bot.set_my_commands(commands) #Register commands for autocompletion (TODO: add command description)
+        self.updater.bot.set_my_commands(commands) #Register commands for autocompletion
 
         # On every message, execute _on_message
         telegram_dispatcher.add_handler(MessageHandler(Filters.text, self._on_message))
