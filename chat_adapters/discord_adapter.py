@@ -88,10 +88,13 @@ class DiscordAdapter():
 
     def _discord_to_sarpi_user(self, user: discord.User) -> SarpiUser:
         # Check if user has a nickname
-        if user.nick is None:
+        try:
+            if user.nick is None:
+                display_name = user.name
+            else:
+                display_name = user.nick
+        except AttributeError:
             display_name = user.name
-        else:
-            display_name = user.nick
         
         return SarpiUser(self._discord_to_sarpi_id(user.id), user.name, display_name)
 
