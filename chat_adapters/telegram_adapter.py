@@ -39,8 +39,8 @@ class TelegramAdapter():
         # Set on_native_command as the handler of registered native commands
         commands = []
 
-        for command, func_descr in sarpi_dispatcher.command_managers.items():
-            description = func_descr[1]
+        for command, comand_manager in sarpi_dispatcher.command_managers.items():
+            description = comand_manager.description
             commands.append(BotCommand(command, description))
             telegram_dispatcher.add_handler(CommandHandler(command, self._on_native_command))
         

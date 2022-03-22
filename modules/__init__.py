@@ -1,16 +1,12 @@
-from events.command import SarpiCommand
-from collections import defaultdict
 from typing import Callable
 import pkgutil
+from module_manager import SarpiModuleManager
 
 from update import SarpiUpdate
 
 """SarPi command modules must inherit from this class"""
 class SarpiModule():
     MODULE_NAME = "" #Name of the module (will use class name in case it's not overriden)
-
-    command_functions = [] #List of tuples containing command words, managing function qualified names and command descriptions ( [(cw,qn,cd),] )
-    event_functions = defaultdict(list) #Dict of event classes and lists of managing function qualified name ( dict(k,[]) )
 
 
     def command(description="."):
@@ -22,7 +18,7 @@ class SarpiModule():
         """
 
         def command_decorator(func : Callable):
-            SarpiModule.command_functions.append((func.__name__, func.__qualname__, description))
+            SarpiModuleManager.add_command_manager(func.__name__, description, func.__qualname__)
         
             return func
         
@@ -39,7 +35,7 @@ class SarpiModule():
 
         def multicommand_decorator(func: Callable):
             for command, description in commands_and_descriptions:
-                SarpiModule.command_functions.append((command, func.__qualname__, description))
+                SarpiModuleManager.add_command_manager(command, description, func.__qualname__)
 
             return func
         
@@ -57,7 +53,7 @@ class SarpiModule():
         """
 
         def event_decorator(func: Callable):
-            SarpiModule.event_functions[event_type].append(func.__qualname__)
+            SarpiModuleManager.add_event_manager(event_type, func.__qualname__)
 
             return func
         

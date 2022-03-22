@@ -1,5 +1,6 @@
 from events.command import SarpiCommand
 from events.message import SarpiMessage
+from module_manager import SarpiModuleManager
 from modules import SarpiModule
 
 
@@ -27,7 +28,7 @@ class SarpiDefaultModule(SarpiModule):
         response = ""
 
         # Get commands from every installed module
-        for command_func, qn, cd in self.command_functions:
+        for command_func in SarpiModuleManager.command_managers:
             command_list.append(command_func)
         
         command_list.sort()
