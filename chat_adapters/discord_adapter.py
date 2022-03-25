@@ -1,6 +1,7 @@
 import asyncio
 from discord.commands.context import ApplicationContext
 from discord.member import Member
+from discord.commands import Option
 from events.chat_member_updated import ChatMemberUpdated
 from events.command import SarpiCommand
 from medium import SarpiMedium
@@ -32,7 +33,18 @@ class DiscordAdapter():
         # Register slash commands. Command parameters are not available at the moment
         for command, command_manager in sarpi_dispatcher.command_managers.items():
             description = command_manager.description
+
             slash_command = discord.commands.SlashCommand(func=self._on_slash_command, name=command, description=description)
+
+            # Register command parameters
+            del slash_command.options[0] #Remove kwargs parameter from _on_slash_command
+
+            if command_manager.has_params:
+                for param in command_manager.params: #Add parameters from command managing function
+                    opt = Option(param.annotation, name=param.name)
+                    opt._parameter_name = param.name
+                    slash_command.options.append(opt)
+
             self.bot.add_application_command(slash_command)
 
         @self.bot.event
@@ -101,18 +113,15 @@ class DiscordAdapter():
 
 
     async def _on_custom_command(self, message) -> None:
-        # Prepare command and arguments
-        command, args = self._extract_command_and_args(message.content)
-
         # Prepare lambda reply function to be used later by the respective command module.
         # A SarpiMessage object will be provided to this function.
         loop = asyncio.get_event_loop()
         reply_func = lambda response : loop.create_task(message.channel.send(response.text))
 
-        await self._on_command(message, reply_func, command, args)
+        await self._on_command(message, reply_func)
 
 
-    async def _on_slash_command(self, ctx: ApplicationContext) -> None:
+    async def _on_slash_command(self, ctx: ApplicationContext, **kwargs) -> None:
         # Prepare lambda reply function to be used later by the respective command module.
         # A SarpiMessage object will be provided to this function.
         loop = asyncio.get_event_loop()
@@ -121,10 +130,17 @@ class DiscordAdapter():
         command = ctx.command.name
         ctx.content = "/" + command #Adapt context to message, since message object is not available.
         
-        await self._on_command(ctx, reply_func, command)
+        # Add slash command arguments to message content
+        for argument in kwargs.values():
+            ctx.content += " " + str(argument)
+        
+        await self._on_command(ctx, reply_func, **kwargs)
 
 
-    async def _on_command(self, message, reply_func, command, args=[]):
+    async def _on_command(self, message, reply_func, **kwargs):
+        # Prepare command and arguments
+        command, args = self._extract_command_and_args(message.content)
+
         # Prepare user metadata        
         user = self._discord_to_sarpi_user(message.author)
 
@@ -141,5 +157,5 @@ class DiscordAdapter():
         sarpi_command = SarpiCommand(message.content, command, args, medium, user)
 
         # SarPi's dispatcher will send the command to the appropiate module
-        self.sarpi_dispatcher.on_update(sarpi_command)
+        self.sarpi_dispatcher.on_update(sarpi_command, **kwargs)
         

@@ -1,7 +1,6 @@
 from typing import Callable
 import pkgutil
 from module_manager import SarpiModuleManager
-
 from update import SarpiUpdate
 
 """SarPi command modules must inherit from this class"""
@@ -9,7 +8,7 @@ class SarpiModule():
     MODULE_NAME = "" #Name of the module (will use class name in case it's not overriden)
 
 
-    def command(description="."):
+    def command(description=".", has_params=True):
         """
         Decorator that will add a function and command description to the list of available command managers of the bot.
 
@@ -18,7 +17,7 @@ class SarpiModule():
         """
 
         def command_decorator(func : Callable):
-            SarpiModuleManager.add_command_manager(func.__name__, description, func.__qualname__)
+            SarpiModuleManager.add_command_manager(func.__name__, description, func.__qualname__, has_params)
         
             return func
         
@@ -35,7 +34,7 @@ class SarpiModule():
 
         def multicommand_decorator(func: Callable):
             for command, description in commands_and_descriptions:
-                SarpiModuleManager.add_command_manager(command, description, func.__qualname__)
+                SarpiModuleManager.add_command_manager(command, description, func.__qualname__, False)
 
             return func
         

@@ -1,7 +1,6 @@
 from events.command import SarpiCommand
 from events.message import SarpiMessage
 from update import SarpiUpdate
-from collections import defaultdict
 
 # Import modules
 from modules import SarpiModule
@@ -23,11 +22,11 @@ class SarpiDispatcher():
 
 
     # Function to be called on every received update, which will be dispatched to the appropiate module
-    def on_update(self, update: SarpiUpdate):
+    def on_update(self, update: SarpiUpdate, **kwargs):
         print("\nNew " + update.medium.platform + " update: " + update.__class__.__name__)
 
         if isinstance(update, SarpiCommand):
-            self._on_command(update) # Dispatch to modules asking for commands
+            self._on_command(update, **kwargs) # Dispatch to modules asking for commands
             
         # Dispatch event to each module asking for this class of event
         try:
@@ -37,11 +36,11 @@ class SarpiDispatcher():
             pass
             
 
-    def _on_command(self, update: SarpiCommand):
+    def _on_command(self, update: SarpiCommand, **kwargs):
             print("Command: " + update.command)
             print("Arguments: " + str(update.args))
 
             if (command_manager := self.command_managers.get(update.command)) is not None:
-                command_manager.func(update)
+                command_manager.func(update, **kwargs)
             else:
                 update.medium.reply(SarpiMessage("⛔ Command not found."))
