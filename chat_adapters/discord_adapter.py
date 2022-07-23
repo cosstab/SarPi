@@ -36,9 +36,6 @@ class DiscordAdapter():
 
             slash_command = discord.commands.SlashCommand(func=self._on_slash_command, name=command, description=description)
 
-            # Register command parameters
-            del slash_command.options[0] #Remove kwargs parameter from _on_slash_command
-
             if command_manager.has_params:
                 for param in command_manager.params: #Add parameters from command managing function
                     opt = Option(param.annotation, name=param.name)
