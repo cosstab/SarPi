@@ -69,7 +69,6 @@ class DiscordAdapter():
                         del self._waiting_commands[chat_id]
                         self.sarpi_dispatcher.on_update(w_command)
                 except KeyError:
-                    print(self._waiting_commands)
                     pass
         
         @self.bot.event
@@ -79,7 +78,7 @@ class DiscordAdapter():
                 # Prepare lambda reply function to be used later by the respective command module.
                 # A SarpiMessage object will be provided to this function.
                 loop = asyncio.get_event_loop()
-                reply_func = lambda response : loop.create_task(guild.system_channel.send(response.text))
+                reply_func = lambda response : loop.create_task(guild.system_channel.send(response.text[:2000]))
 
                 user = self._discord_to_sarpi_user(member)
                 medium = SarpiMedium(self.PLATFORM_NAME, self._discord_to_sarpi_id(member.guild), reply_func)
@@ -136,7 +135,7 @@ class DiscordAdapter():
         # Prepare lambda reply function to be used later by the respective command module.
         # A SarpiMessage object will be provided to this function.
         loop = asyncio.get_event_loop()
-        reply_func = lambda response : loop.create_task(message.channel.send(response.text))
+        reply_func = lambda response : loop.create_task(message.channel.send(response.text[:2000]))
 
         await self._on_command(message, reply_func)
 
@@ -145,7 +144,7 @@ class DiscordAdapter():
         # Prepare lambda reply function to be used later by the respective command module.
         # A SarpiMessage object will be provided to this function.
         loop = asyncio.get_event_loop()
-        reply_func = lambda response : loop.create_task(ctx.respond(response.text))
+        reply_func = lambda response : loop.create_task(ctx.respond(response.text[:2000]))
 
         command = ctx.command.name
         ctx.content = "/" + command #Adapt context to message, since message object is not available.
