@@ -20,6 +20,8 @@ class TelegramAdapter():
 
     PLATFORM_NAME = "Telegram"
 
+    waiting_commands = {} #Dict of commands waiting for a response with the chat id as a key
+
 
 	# Initialize adapter, Telegram Updater and it's events
     def __init__(self, sarpi_dispatcher: 'SarpiDispatcher') -> None:
@@ -108,6 +110,16 @@ class TelegramAdapter():
             # Prepare command and arguments
             command, args = self._extract_command_and_args(update.message.text)
             self._proccess_command(command, args, update, context)
+        else:
+            # Check if we are waiting for a response on this chat from the sender of the message
+            try:
+                w_command = self.waiting_commands[update.effective_chat.id]
+                if w_command.user.id == self._telegram_to_sarpi_id(update.effective_user.id):
+                    w_command.args = update.message.text.split(' ')
+                    del self.waiting_commands[update.effective_chat.id]
+                    self.sarpi_dispatcher.on_update(w_command)
+            except KeyError:
+                pass
 
 
     def _on_native_command(self, update: Update, context: CallbackContext) -> None:
@@ -123,7 +135,9 @@ class TelegramAdapter():
         sarpi_command = SarpiCommand(update.message.text, command, args, medium, user)
 
         # SarPi's dispatcher will send the command to the appropiate module
-        self.sarpi_dispatcher.on_update(sarpi_command)
+        if self.sarpi_dispatcher.on_update(sarpi_command):
+            # When True is returned, we add the command to the list of commands waiting for a response
+            self.waiting_commands[update.effective_chat.id] = sarpi_command
     
 
     def _on_user_join(self, update: Update, context: CallbackContext):
