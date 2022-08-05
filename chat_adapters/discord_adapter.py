@@ -13,6 +13,8 @@ from dotenv import load_dotenv
 class DiscordAdapter():
     PLATFORM_NAME = "Discord"
 
+    _waiting_commands = {} #Dict of commands waiting for a response with the chat id as a key
+
     # Initialize adapter, Discord client and it's events
     def __init__(self, sarpi_dispatcher: 'SarpiDispatcher') -> None:
         self.sarpi_dispatcher = sarpi_dispatcher
@@ -56,6 +58,19 @@ class DiscordAdapter():
 
             if message.content.startswith(COMMAND_PREFIX):
                 await self._on_custom_command(message)
+            else:
+                # Check if we are waiting for a response on this chat from the sender of the message
+                try:
+                    chat_id = self._get_chat_id(message)
+                    w_command = self._waiting_commands[chat_id]
+
+                    if w_command.user.id == self._discord_to_sarpi_id(message.author.id):
+                        w_command.args = message.content.split(' ')
+                        del self._waiting_commands[chat_id]
+                        self.sarpi_dispatcher.on_update(w_command)
+                except KeyError:
+                    print(self._waiting_commands)
+                    pass
         
         @self.bot.event
         async def on_member_join(member: Member):
@@ -107,6 +122,14 @@ class DiscordAdapter():
             display_name = user.name
         
         return SarpiUser(self._discord_to_sarpi_id(user.id), user.name, display_name)
+    
+
+    def _get_chat_id(self, message) -> str:
+        # Check if author of the message is a member of a server or an user via DM
+        if isinstance(message.author, discord.Member):
+            return self._discord_to_sarpi_id(message.author.guild)
+        else: #Author is chatting via DM
+            return self._discord_to_sarpi_id(message.author.id)
 
 
     async def _on_custom_command(self, message) -> None:
@@ -141,11 +164,7 @@ class DiscordAdapter():
         # Prepare user metadata        
         user = self._discord_to_sarpi_user(message.author)
 
-        # Check if author of the message is a member of a server or an user via DM
-        if isinstance(message.author, discord.Member):
-            chat_id = self._discord_to_sarpi_id(message.author.guild)
-        else: #Author is chatting via DM
-            chat_id = self._discord_to_sarpi_id(message.author.id)
+        chat_id = self._get_chat_id(message)
 
         # Create Medium object with previous data
         medium = SarpiMedium(self.PLATFORM_NAME, chat_id, reply_func)
@@ -154,5 +173,7 @@ class DiscordAdapter():
         sarpi_command = SarpiCommand(message.content, command, args, medium, user)
 
         # SarPi's dispatcher will send the command to the appropiate module
-        self.sarpi_dispatcher.on_update(sarpi_command, **kwargs)
+        if self.sarpi_dispatcher.on_update(sarpi_command, **kwargs):
+            # When True is returned, we add the command to the list of commands waiting for a response
+            self._waiting_commands[chat_id] = sarpi_command
         
