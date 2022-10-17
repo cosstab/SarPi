@@ -8,7 +8,7 @@ class SarpiModule():
     MODULE_NAME = "" #Name of the module (will use class name in case it's not overriden)
 
 
-    def command(description=".", has_params=True):
+    def command(description="."):
         """
         Decorator that will add a function and command description to the list of available command managers of the bot.
 
@@ -17,6 +17,8 @@ class SarpiModule():
         """
 
         def command_decorator(func : Callable):
+            # Check if the decorated command has custom parameters
+            has_params = func.__code__.co_argcount > 2
             SarpiModuleManager.add_command_manager(func.__name__, description, func.__qualname__, has_params)
         
             return func
