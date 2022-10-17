@@ -18,6 +18,8 @@ class SarpiDispatcher():
     def __init__(self) -> None:
         module_manager = SarpiModuleManager(SarpiModule)
         self.command_managers = module_manager.command_managers
+        self.precommand_managers = module_manager.precommand_managers
+        self.postcommand_managers = module_manager.postcommand_managers
         self.event_managers = module_manager.event_managers
 
 
@@ -48,7 +50,21 @@ class SarpiDispatcher():
         
         def _dispatch(update: SarpiCommand, **kwargs):
             print("Kwargs: " + str(kwargs))
-            command_manager.func(update, **kwargs)
+
+            for precommand_manager in self.precommand_managers:
+                # If any of the precommand managers returns False, we'll stop the execution of the command
+                if precommand_manager.func(update, **kwargs) is False:
+                    return False
+
+            # A command function can stop the execution of postcommands by returning False or pass an object
+            # to postcommands by returning it.
+            command_result = command_manager.func(update, **kwargs)
+            if command_result is not False:
+                for postcommand_manager in self.postcommand_managers:
+                    # If any of the postcommand managers returns False, we'll stop the execution of 
+                    # the rest of postcommands
+                    if postcommand_manager.func(update, command_result, **kwargs) is False:
+                        break
             
             return False
 

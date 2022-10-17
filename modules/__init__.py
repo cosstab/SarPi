@@ -39,6 +39,46 @@ class SarpiModule():
             return func
         
         return multicommand_decorator
+
+    def precommand(priority: int = 1000):
+        '''
+        Functions using this decorator will be executed before every command.
+
+        A priority number can be specified. In case there are multiple precommands, the one with the
+        lower number will be executed first. The priority number must be between 0 and 1000, both included.
+
+        Precommands can return return False to stop the rest of the command execution chain. 
+        '''
+
+        if not (0 <= priority <= 1000):
+            raise ValueError
+
+        def precommand_decorator(func : Callable):
+            SarpiModuleManager.add_precommand_manager(func.__qualname__, priority)
+        
+            return func
+        
+        return precommand_decorator
+    
+    def postcommand(priority: int = 1000):
+        '''
+        Same as precommand, but functions decorated by this decorator will be executed AFTER every command.
+
+        Returning False will stop the execution of the postcommmands with lower priority (higher priority
+        number).
+
+        A command can pass an object to postcommands by returning it.
+        '''
+
+        if not (0 <= priority <= 1000):
+            raise ValueError
+
+        def postcommand_decorator(func : Callable):
+            SarpiModuleManager.add_postcommand_manager(func.__qualname__, priority)
+        
+            return func
+        
+        return postcommand_decorator
     
     def event(event_type: SarpiUpdate):
         """
